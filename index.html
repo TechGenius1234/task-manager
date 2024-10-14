@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #task-container {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      margin-right: 5px;
+    }
+    button {
+      padding: 10px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      padding: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <h2>Task Manager</h2>
+    <input type="text" id="taskNumber" placeholder="Enter task number">
+    <button onclick="addTask()">Add Task</button>
+    
+    <ul id="taskList">
+      <!-- Tasks will be displayed here -->
+    </ul>
+  </div>
+
+  <script>
+    const MAX_TASK_COUNT = 16;
+
+    // Function to load tasks from localStorage when the page loads and reset tasks if a new day
+    window.onload = function() {
+      checkDailyReset();
+      displayTasks();
+    };
+
+    // Function to check if the date has changed and reset the tasks if it's a new day
+    function checkDailyReset() {
+      const today = new Date().toLocaleDateString();
+      const lastVisitDate = localStorage.getItem('lastVisitDate');
+      
+      if (lastVisitDate !== today) {
+        localStorage.removeItem('tasks');  // Reset tasks for the new day
+        localStorage.setItem('lastVisitDate', today);  // Update the last visit date
+      }
+    }
+
+    // Function to add a new task
+    function addTask() {
+      const taskNumber = document.getElementById('taskNumber').value;
+      if (taskNumber) {
+        const tasks = getTasks();
+        tasks.push({ number: taskNumber, done: false });
+        saveTasks(tasks);
+        displayTasks();
+        document.getElementById('taskNumber').value = '';  // Clear input
+      }
+    }
+
+    // Function to toggle task completion
+    function toggleTask(index) {
+      const tasks = getTasks();
+      if (!tasks[index].done) {
+        tasks[index].done = true;
+        incrementTaskCounter();
+      }
+      saveTasks(tasks);
+      displayTasks();
+    }
+
+    // Function to get tasks from localStorage
+    function getTasks() {
+      const tasks = localStorage.getItem('tasks');
+      return tasks ? JSON.parse(tasks) : [];
+    }
+
+    // Function to save tasks to localStorage
+    function saveTasks(tasks) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Function to display tasks in the list
+    function displayTasks() {
+      const tasks = getTasks();
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';  // Clear the list first
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `${task.number} - ${task.done ? 'Done' : 'Not Done'} 
+                        <button onclick="toggleTask(${index})">I've done it</button>`;
+        taskList.appendChild(li);
+      });
+    }
+
+    // Function to increment the task counter
+    function incrementTaskCounter() {
+      let completedTasks = parseInt(localStorage.getItem('completedTasks')) || 0;
+      completedTasks += 1;
+      localStorage.setItem('completedTasks', completedTasks);
+      if (completedTasks >= MAX_TASK_COUNT) {
+        // Redirect to success page
+        window.location.href = 'success.html';
+      }
+    }
+
+    // Function to load tasks on page load
+    function loadTasks() {
+      displayTasks();
+    }
+  </script>
+
+</body>
+</html>
